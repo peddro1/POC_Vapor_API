@@ -12,6 +12,7 @@ struct CreateMessage: Migration {
         return database.schema("messages")
             .id()
             .field("text", .string, .required)
+            .field("chat_id", .uuid, .references("chat", "id"))
             .create()
     }
     

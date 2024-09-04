@@ -41,6 +41,7 @@ struct MessageController: RouteCollection{
             .unwrap(or: Abort(.notFound))
             .flatMap{
                 $0.text = message.text
+                $0.chat = message.chat
                 return $0.update(on: req.db).transform(to: .ok)
         }
     }

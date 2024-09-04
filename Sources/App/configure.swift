@@ -3,6 +3,8 @@ import Fluent
 import FluentPostgresDriver
 import Vapor
 
+
+// referencia https://www.youtube.com/watch?v=CD283bLteP0
 // configures your application
 public func configure(_ app: Application) async throws {
     // uncomment to serve files from /Public folder
@@ -18,7 +20,11 @@ public func configure(_ app: Application) async throws {
     ), as: .psql)
 
     app.migrations.add(CreateMessage())
-    //try app.autoMigrate()
+
+    app.migrations.add(CreateChat())
+    app.migrations.add(AddChatToMessage())
+    
+    try app.autoMigrate().wait()
     // register routes
     try routes(app)
 }

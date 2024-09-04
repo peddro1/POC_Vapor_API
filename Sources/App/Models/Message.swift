@@ -17,10 +17,14 @@ final class Message: Model, Content{
     @Field(key: "text")
     var text: String
     
+    @Parent(key: "chat_id")
+    var chat: Chat
+    
     init(){}
     
-    init(id: UUID? = nil, text: String){
+    init(id: UUID? = nil, text: String, chatId: Chat.IDValue){
         self.id = id
         self.text = text
+        self.$chat.id = chatId
     }
 }
