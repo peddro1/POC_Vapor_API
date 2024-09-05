@@ -17,6 +17,7 @@ struct ChatController: RouteCollection{
         chats.put(use: update)
         chats.group(":chatID"){ chat in
             chat.delete(use: delete)
+            chat.get(use: getChatById)
         }
     }
     
@@ -50,5 +51,30 @@ struct ChatController: RouteCollection{
             .unwrap(or: Abort(.notFound))
             .flatMap{ $0.delete( on: req.db)}
             .transform(to: .ok)
+    }
+    
+    @Sendable
+    func getChatById(req: Request) throws -> EventLoopFuture<ChatWithMessages>{
+       
+        guard let chatIDString = req.parameters.get("chatID"),
+                  let chatID = UUID(chatIDString) else {
+                throw Abort(.badRequest, reason: "Invalid chat ID")
+            }
+        
+        return Chat.find(chatID, on: req.db)
+                .unwrap(or: Abort(.notFound)) // Garante que o chat existe
+                .flatMap { chat in
+                    // Agora buscamos as mensagens associadas ao chat
+                    return Message.query(on: req.db)
+                        .filter(\.$chat.$id == chatID)
+                        .all()
+                        .map { messages in
+                            // Quando tivermos o chat e as mensagens, retornamos o DTO
+                            let messagesWithoutChat = messages.map { message in
+                                return MessageWithoutChat(id: message.id!, text: message.text)
+                            }
+                            return ChatWithMessages(chat: chat, messages: messagesWithoutChat)
+                        }
+                }
     }
 }
